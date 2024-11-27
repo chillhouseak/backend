@@ -15,7 +15,7 @@ stack =""
     if(stack){
         this.stack = stack
     }else{
-        Error.capturestacktrace(this. this.constructor)
+        Error.captureStackTrace(this, this.constructor)
     }
 }
 }

@@ -8,16 +8,20 @@ import fs from "fs";
         api_secret: process.env.CLOUDINARY_API_SECRET // Click 'View API Keys' above to copy your API secret
     });
 
-    const uploadcloudinary = async(localfilepath)=>{
+    const uploadcloudinary = async(localFilePath)=>{
         try {
-            if(!localfilepath) return null;
-            const responce = await cloudinary.uploader.upload(localfilepath,{
-                resource_type: 'auto'
-            })
-            console.log("file has been uploaded on cloudinary", responce.url);
-            return responce;
-        } catch (error) {
-            fs.unlinkSync(localfilepath)
+            if(!localFilePath) return null;
+            try {
+                const response = await cloudinary.uploader.upload(localFilePath,{
+                    resource_type: 'auto'
+                })
+                console.log("file has been uploaded on cloudinary", response.url);
+                return response;
+            }catch (error){
+                console.log("error from cloud" , error)
+            }
+          } catch (error) {
+            fs.unlinkSync(localFilePath)
             return null
         }
     }
