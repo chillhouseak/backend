@@ -239,7 +239,7 @@ const updateuseravatar = asynchandler(async(req,res)=>
  if(!avatar.url){
   throw new apiError(400 , "error while uploading avatar")
  }
- await User.findByIdAndUpdate(
+ const user = await User.findByIdAndUpdate(
   req.user?._id,
   {
     $set:{
@@ -248,6 +248,11 @@ const updateuseravatar = asynchandler(async(req,res)=>
   },
   {new: true}
  ).select("-password")
+ return res
+ .status(200)
+ .json(
+  new apiresponce(200, user, " avatar updated successfully")
+ )
 });
 
 const updateusercoverimage = asynchandler(async(req,res)=>
@@ -257,19 +262,24 @@ const updateusercoverimage = asynchandler(async(req,res)=>
  if(!coverimagelocalpath){
   throw new apiError(400, "avatar file is missing")
  }
- const coverImage = await uploadcloudinary(coverimagelocalpath)
- if(!coverImage.url){
+ const coverimage = await uploadcloudinary(coverimagelocalpath)
+ if(!coverimage.url){
   throw new apiError(400 , "error while uploading coverimage")
  }
- await User.findByIdAndUpdate(
+ const user = await User.findByIdAndUpdate(
   req.user?._id,
   {
     $set:{
-      coverImage: coverImage.url
+      coverimage: coverimage.url
     },
   },
   {new: true}
  ).select("-password")
+ return res
+ .status(200)
+ .json(
+  new apiresponce(200, user, " cover image updated successfully")
+ )
 });
 export {
   registeruser,
@@ -281,5 +291,4 @@ export {
  updateaccountdetail,
  updateuseravatar,
  updateusercoverimage
-
 }
