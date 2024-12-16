@@ -281,6 +281,120 @@ const updateusercoverimage = asynchandler(async(req,res)=>
   new apiresponce(200, user, " cover image updated successfully")
  )
 });
+
+const getuserchannelprofile = asynchandler(async(req, res)=>{
+const {username} = req.params
+if (!username?.trim()) {
+  throw new apiError(400 ,"usernanem is missing")
+}
+const channel = await User.aggregate([
+  {
+  $match:{
+    usernamee: username?.toLowerCase()
+  }
+},
+{
+  $lookup:{
+    from: "subscriptions",
+    localField:"_id",
+    foreignField: "channel",
+    as: "subscribers"
+  }
+},
+{
+  
+    $lookup:{
+      from: "subscriptions",
+      localField:"_id",
+      foreignField: "subscriber",
+      as: "subscriberedTo"
+  }
+},
+{
+  $addFields:{
+ subscriberCount:{
+  $size: "$subscriber"
+ },
+ channelsubscribedtocount :{
+  $size: "$subscribeTo"
+ },
+ issubscribed:{
+  $cond:{
+    if:{$in:[req.user?._id,"$subscribers.subscriber"]},
+    then : true,
+    else: false
+  }
+ }
+  }
+},
+{
+  $project:{
+    fullname: 1,
+    username:1,
+    subscriberCount:1,
+    channelsubscribedtocount: 1,
+    issubscribed: 1,
+    avatar:1,
+    coverimage:1,
+    email:1,
+  }
+}
+])
+if (!channel?.length) {
+  throw new apiError(404 , "channel dosenot exist ")
+}
+return res
+.status(200)
+.json(
+  new apiresponce(200, channel[0]," user channel fetched successfully")
+)
+})
+
+const getwatchhistory = asynchandler(async(req,res)=>{
+  const user = await User.aggregate([
+    {
+      $match:{
+        _id: new moongose.Types.objectId(req.user._id)
+      }
+    },
+    {
+      $lookup:{
+        from:"videos",
+        localField:"watchhistory",
+        foreignField:"_id",
+        as: "watchhistory",
+        pipeline:[
+          {
+            $lookup:{
+              from: "useres",
+              localField: "owner",
+              foreignField:"_id",
+              as: "owner",
+              pipeline:[
+                {
+                  $project:{
+                   fullname:1,
+                   username:1,
+                   avatar:1
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ])
+  return res
+  .status(200)
+  .json(
+    new apiresponce(
+      200,
+      user[0].watchhistory,
+      "watch history get successfully"
+    )
+  )
+})
 export {
   registeruser,
   loginuser,
@@ -290,5 +404,7 @@ export {
   getcurrentuser,
  updateaccountdetail,
  updateuseravatar,
- updateusercoverimage
+ updateusercoverimage,
+ getuserchannelprofile,
+ getwatchhistory
 }
